@@ -32,6 +32,8 @@ capR.set(cv.CAP_PROP_FRAME_WIDTH, 1920)
 capL.set(cv.CAP_PROP_FRAME_HEIGHT,1080)
 capL.set(cv.CAP_PROP_FRAME_WIDTH, 1920)
 
+vid = cv.VideoWriter("StereoVision OpenCV.avi", cv.VideoWriter_fourcc('M','J','P','G'), 10, (1920,1080))
+
 # plt.ion()
 # plt.show()
 plt.axis('off')
@@ -76,7 +78,7 @@ while(capR.isOpened() and capL.isOpened()):
         break
     else:
         
-        stereo = cv.StereoSGBM_create(numDisparities = disp,blockSize = block)
+        stereo = cv.StereoSGBM_create(numDisparities = 14*16,blockSize = 1)
         depth = stereo.compute(frameR, frameL,)
         plt.imsave('StereoVision/dept.png',depth)
         inn = cv.imread("StereoVision/dept.png")
@@ -86,6 +88,7 @@ while(capR.isOpened() and capL.isOpened()):
         # cv.imshow("Right", frameR)
         # cv.imshow("Left", frameL)
         cv.imshow("Depth", inn)
+        vid.write(inn)
         
 
         
@@ -103,8 +106,8 @@ while(capR.isOpened() and capL.isOpened()):
         # cv.imshow("output", out)
 
         if not done:
-            cv.createTrackbar("Disparitys","Depth",1,225,disp_on_change)
-            cv.createTrackbar("Block size","Depth",5,25,block_on_change)
+            # cv.createTrackbar("Disparitys","Depth",1,225,disp_on_change)
+            # cv.createTrackbar("Block size","Depth",5,25,block_on_change)
             # cv.createTrackbar("upper","output", 0,255,setULim)
             # cv.createTrackbar("lower","output", 0,255,setLLim)
             done = True
