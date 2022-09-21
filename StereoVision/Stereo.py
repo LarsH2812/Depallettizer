@@ -10,10 +10,15 @@ from copy import deepcopy
 import calibration
 import triangulation
 
-cv.CAP_PROP_FOCUS      = 50
-cv.CAP_PROP_BRIGHTNESS = 50
-cv.CAP_PROP_SATURATION = 50
-cv.CAP_PROP_CONTRAST   = 50
+def setCamVals(capture, dimensions = (None,None), focus = 50,brightness = 50, saturation = 50, contrast = 50):
+    if not dimensions[0] is None:
+        capture.set(cv.CAP_PROP_FRAME_HEIGHT,dimensions[1])
+        capture.set(cv.CAP_PROP_FRAME_WIDTH, dimensions[0])
+        
+    capture.set(cv.CAP_PROP_FOCUS, focus)
+    capture.set(cv.CAP_PROP_BRIGHTNESS, brightness)
+    capture.set(cv.CAP_PROP_SATURATION, saturation)
+    capture.set(cv.CAP_PROP_CONTRAST, contrast)
 
 block = 5
 disp = 16
@@ -23,16 +28,13 @@ LLim = 0
 
 done = False
 
-capR = cv.VideoCapture(2, cv.CAP_DSHOW)                    
-capL = cv.VideoCapture(1, cv.CAP_DSHOW)
+capR = cv.VideoCapture(1, cv.CAP_DSHOW)                    
+capL = cv.VideoCapture(2, cv.CAP_DSHOW)
 
-capR.set(cv.CAP_PROP_FRAME_HEIGHT,1080)
-capR.set(cv.CAP_PROP_FRAME_WIDTH, 1920)
+setCamVals(capR,brightness=50,contrast=100,saturation=60,focus=8)
+setCamVals(capL,brightness=50,contrast=100,saturation=60,focus=8)
 
-capL.set(cv.CAP_PROP_FRAME_HEIGHT,1080)
-capL.set(cv.CAP_PROP_FRAME_WIDTH, 1920)
-
-vid = cv.VideoWriter("StereoVision OpenCV.avi", cv.VideoWriter_fourcc('M','J','P','G'), 10, (1920,1080))
+# vid = cv.VideoWriter("StereoVision OpenCV.avi", cv.VideoWriter_fourcc('M','J','P','G'), 10, (1920,1080))
 
 # plt.ion()
 # plt.show()
@@ -78,17 +80,17 @@ while(capR.isOpened() and capL.isOpened()):
         break
     else:
         
-        stereo = cv.StereoSGBM_create(numDisparities = 14*16,blockSize = 1)
+        stereo = cv.StereoSGBM_create(numDisparities = 8*16,blockSize = 1)
         depth = stereo.compute(frameR, frameL,)
         plt.imsave('StereoVision/dept.png',depth)
-        inn = cv.imread("StereoVision/dept.png")
+        inn = cv.imread("StereoVision/dept.png", cv.IMREAD_GRAYSCALE)
 
 
 
-        # cv.imshow("Right", frameR)
-        # cv.imshow("Left", frameL)
-        cv.imshow("Depth", inn)
-        vid.write(inn)
+        cv.imshow("Right", frameR)
+        cv.imshow("Left", frameL)
+        # cv.imshow("Depth", inn)
+        # vid.write(inn)
         
 
         
