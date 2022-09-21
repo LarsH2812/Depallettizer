@@ -34,7 +34,7 @@ capL = cv.VideoCapture(2, cv.CAP_DSHOW)
 setCamVals(capR,brightness=50,contrast=100,saturation=60,focus=8)
 setCamVals(capL,brightness=50,contrast=100,saturation=60,focus=8)
 
-# vid = cv.VideoWriter("StereoVision OpenCV.avi", cv.VideoWriter_fourcc('M','J','P','G'), 10, (1920,1080))
+vid = cv.VideoWriter("StereoVision OpenCV.avi", cv.VideoWriter_fourcc('M','J','P','G'), 10, (1920,1080))
 
 # plt.ion()
 # plt.show()

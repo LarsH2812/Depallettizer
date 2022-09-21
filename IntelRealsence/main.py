@@ -13,6 +13,8 @@ import cv2 as cv
 pipeline = rs.pipeline()
 config = rs.config()
 
+videocapture = cv.VideoWriter("ContourDetected.avi",  cv.VideoWriter_fourcc('M','J','P','G'), 30, (1280,960))
+
 # Get device product line for setting a supporting resolution
 pipeline_wrapper = rs.pipeline_wrapper(pipeline)
 pipeline_profile = config.resolve(pipeline_wrapper)
@@ -65,16 +67,29 @@ try:
         depthImage = np.asanyarray(alignedDepthFrame.get_data())
         colorImage = np.asanyarray(color_frame.get_data())
 
-        gray_color = 153
+        gray_color = 0
+        white_color = 0
         depthImage3D = np.dstack((depthImage,depthImage,depthImage))
         bgRemoved = np.where((depthImage3D > maxDist) | (depthImage3D <= 0), gray_color, colorImage)
 
         depthColormap = cv.applyColorMap(cv.convertScaleAbs(depthImage, alpha=0.03), cv.COLORMAP_JET)
-        images = np.hstack((bgRemoved, depthColormap))
 
         # Show images
         cv.namedWindow('RealSense', cv.WINDOW_AUTOSIZE)
+
+        # cv.imshow('RealSense', bgRemoved)
+
+        gray = cv.cvtColor(bgRemoved, cv.COLOR_BGR2GRAY)
+        horizontal1 = np.hstack((bgRemoved,np.dstack((gray,gray,gray))))
+        _, bw = cv.threshold(gray, 105, 255, cv.THRESH_BINARY)
+        contours, _ = cv.findContours(bw, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
+
+        cv.drawContours(bgRemoved, contours, -1, (0,255,0), 2, cv.LINE_AA)
+        horizontal2 = np.hstack((np.dstack((bw,bw,bw)), bgRemoved))
+        images = np.vstack((horizontal1,horizontal2))
+        
         cv.imshow('RealSense', images)
+        videocapture.write(images)
 
         k = cv.waitKey(1)
 
@@ -84,7 +99,7 @@ try:
             cv.imwrite("boxes.png",bgRemoved)
 
 finally:
-
+    print(images.shape)
     # Stop streaming
     cv.destroyAllWindows()
     pipeline.stop()
