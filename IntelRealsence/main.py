@@ -9,6 +9,7 @@ import numpy as np
 import cv2 as cv
 import imutils
 
+
 cnts = None
 
 framesize = {'width':1280, 'height': 720}
@@ -54,7 +55,6 @@ maxDist = maxDistMeters / depthScale
 align_to = rs.stream.color
 align = rs.align(align_to)
 
-i = 0
 cv.namedWindow('RealSense', cv.WINDOW_AUTOSIZE)
 
 try:
@@ -67,9 +67,6 @@ try:
         elif k == ord('s'):
             cv.imwrite("boxes.png",bgRemoved)
         elif k == 32 :
-            
-
-            i = i+1
             
             # Wait for a coherent pair of frames: depth and color
             frames = pipeline.wait_for_frames()
@@ -105,6 +102,8 @@ try:
                 try:
             
                     M = cv.moments(cont)
+                    area = M["m00"]
+
                     cX = int(M["m10"] / M["m00"])
                     cY = int(M["m01"] / M["m00"])
 
@@ -113,7 +112,8 @@ try:
                     box = np.int0(box)
 
                     length, width = max(rect[1]), min(rect[1])
-                    area = M["m00"]
+                    
+                    orientatie = ""
 
                     angle = rect[-1]
 
@@ -122,15 +122,25 @@ try:
                     else:
                         angle = angle + 90
 
+                    if 40000 <= area and area <= 90000:
+                        orientatie = False
+                    elif 90000 <= area:
+                        orientatie = True
+
                     if area >= 40000:
-                        cv.drawContours(colorImage, [box], -1, (255,255,255), 2)
+                        cv.drawContours(colorImage, [box], -1, (255,255,255), 2, cv.LINE_AA)
                         cv.circle(colorImage, (cX,cY), 7, (255,255,255), -1)
                         cv.putText(colorImage, f"CENTER:", (cX-20,cY+20),cv.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255),2)
                         cv.putText(colorImage, f"({cX}, {cY})", (cX-20,cY+40),cv.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255),2)
                         cv.putText(colorImage, f"({format(angle, '.2f')})", (cX-20,cY+60),cv.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255),2)
+                        cv.putText(colorImage, f"{orientatie}", (cX-20,cY+80),cv.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255),2)
 
                         lenArrow = 100
                         cv.arrowedLine(colorImage, (cX,cY), (int(cX + lenArrow*cos(radians(angle-90))), int(cY + lenArrow*sin(radians(angle-90)))), (255,255,255), 2)
+
+                        output = [(cX, cY,angle), (area,orientatie)]
+
+                        
 
                 except:
                     cv.drawContours(colorImage,[cont],-1,(0,0,255), 2)
@@ -138,7 +148,9 @@ try:
             horizontal2 = np.hstack((np.dstack((gray,gray,gray)),np.dstack((bw,bw,bw)), colorImage))
             images = np.vstack((horizontal1,horizontal2))
             
+            # output = np.array(output)
             cv.imshow('RealSense', colorImage)
+            print(output)
             # videocapture.write(images)
 
 finally:
