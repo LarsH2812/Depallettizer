@@ -66,7 +66,15 @@ try:
             break
         elif k == ord('s'):
             cv.imwrite("boxes.png",bgRemoved)
-        elif k == 32 :
+        elif k == ord('+'):
+            maxDistMeters = maxDistMeters + 0.01
+            maxDist = maxDistMeters / depthScale
+            print(maxDistMeters)
+        elif k == ord('-'):
+            maxDistMeters = maxDistMeters - 0.01
+            maxDist = maxDistMeters / depthScale
+            print(maxDistMeters)
+        else:#if k == 32 :
             
             # Wait for a coherent pair of frames: depth and color
             frames = pipeline.wait_for_frames()
@@ -82,9 +90,8 @@ try:
             depthImage = np.asanyarray(alignedDepthFrame.get_data())
             colorImage = np.asanyarray(color_frame.get_data())
 
-            gray_color = 0
             depthImage3D = np.dstack((depthImage,depthImage,depthImage))
-            bgRemoved = np.where((depthImage3D > maxDist) | (depthImage3D <= 0), gray_color, colorImage)
+            bgRemoved = np.where((depthImage3D > maxDist) | (depthImage3D <= 0), 0, colorImage)
 
             depthColormap = cv.applyColorMap(cv.convertScaleAbs(depthImage, alpha=0.03), cv.COLORMAP_JET)
             horizontal1 = np.hstack((depthColormap,colorImage, bgRemoved))
@@ -149,8 +156,8 @@ try:
             images = np.vstack((horizontal1,horizontal2))
             
             # output = np.array(output)
-            cv.imshow('RealSense', colorImage)
-            print(output)
+            cv.imshow('RealSense', bgRemoved)
+            # print(output)
             # videocapture.write(images)
 
 finally:
