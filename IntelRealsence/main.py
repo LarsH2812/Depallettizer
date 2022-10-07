@@ -50,7 +50,7 @@ depthScale  = depthSensor.get_depth_scale()
 print(f"Depth Scale is: {depthScale}")
 
 maxDistMeters = 1.63 #[m]
-maxDist = maxDistMeters / depthScale
+
 
 align_to = rs.stream.color
 align = rs.align(align_to)
@@ -68,14 +68,14 @@ try:
             cv.imwrite("boxes.png",bgRemoved)
         elif k == ord('+'):
             maxDistMeters = maxDistMeters + 0.01
-            maxDist = maxDistMeters / depthScale
             print(maxDistMeters)
         elif k == ord('-'):
             maxDistMeters = maxDistMeters - 0.01
-            maxDist = maxDistMeters / depthScale
             print(maxDistMeters)
-        else:#if k == 32 :
+        elif k == 32 :
             
+            
+
             # Wait for a coherent pair of frames: depth and color
             frames = pipeline.wait_for_frames()
 
@@ -91,7 +91,9 @@ try:
             colorImage = np.asanyarray(color_frame.get_data())
 
             depthImage3D = np.dstack((depthImage,depthImage,depthImage))
-            bgRemoved = np.where((depthImage3D > maxDist) | (depthImage3D <= 0), 0, colorImage)
+            if not maxDistMeters <= 0:
+                maxDist = maxDistMeters / depthScale
+                bgRemoved = np.where((depthImage3D > maxDist) | (depthImage3D <= 0), 0, colorImage)
 
             depthColormap = cv.applyColorMap(cv.convertScaleAbs(depthImage, alpha=0.03), cv.COLORMAP_JET)
             horizontal1 = np.hstack((depthColormap,colorImage, bgRemoved))
