@@ -1,8 +1,9 @@
 Example
-
+#file folders
 .venv
 .vscode
 
+#Pictures
 *.avi
 *.png
 *.jpg

@@ -95,7 +95,6 @@ rot = 90
 ori = 0
 
 while True:
-    break
     print(f"[*] Started listening on :{hostIp}:{hostPort}")
     clientSocket, clientAddress = tcpSocket.accept()
 

@@ -45,8 +45,8 @@ while (k != 27):
 	if not ids is None:
 		ids = ids.flatten()
 
-		for (marekerCorner, markerID) in zip(corners, ids):
-			(topLeft, topRight, bottomRight, bottomLeft) = marekerCorner.reshape((4,2))
+		for (markerCorner, markerID) in zip(corners, ids):
+			(topLeft, topRight, bottomRight, bottomLeft) = markerCorner.reshape((4,2))
 
 			topRight = (int(topRight[0]), int(topRight[1]))
 			topLeft = (int(topLeft[0]), int(topLeft[1]))
