@@ -8,6 +8,7 @@ Created on Thu Oct  6 13:15:40 2022
 import cv2
 import numpy as np
 
+Labeldetectie = ""
 
 
 def getContours(frame):
@@ -16,12 +17,20 @@ def getContours(frame):
         area = cv2.contourArea(cnt)
         #print(area)
         if area>10000:
-            cv2.drawContours(frameContour, cnt, -1, (0, 0, 255), 5)
+            #cv2.drawContours(frameContour, cnt, -1, (0, 0, 255), 5)
             rect = cv2.minAreaRect(cnt)
             label = cv2.boxPoints(rect)
             label = np.int0(label)
             cv2.drawContours(frameContour,[label],0,(0,255,0),3,lineType=cv2.LINE_AA)
-          
+            Labeldetectie = True
+            print("Labelaanwezig", Labeldetectie)
+        else:
+            Labeldetectie = False
+            print("Geen label aanwezig", Labeldetectie)
+            
+
+    
+    
  
 cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
 cap.set(cv2.CAP_PROP_FOCUS, 50)
@@ -50,6 +59,8 @@ while True:
         frameBlank = np.zeros_like(frame)
         frameContour = frame. copy()
         getContours(frameBW)
+                
+           
                        
         cv2.imshow('gray',frameGray)
         cv2.imshow('bw',frameBW)
