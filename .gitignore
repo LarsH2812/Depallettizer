@@ -1,6 +1,7 @@
 Example
 
 .venv
+.vscode
 
 *.avi
 *.png
