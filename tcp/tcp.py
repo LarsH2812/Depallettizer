@@ -18,16 +18,12 @@ tcpSocket = tcp.socket(tcp.AF_INET, tcp.SOCK_STREAM)
 tcpSocket.bind(serverAdress)
 tcpSocket.listen(5)
 
-x = 5.454
-y = 1231.858
-rot = 90
-ori = 0
 
 while True:
     print(f"\u001b[34m [*] \u001b[0m Started listening on :{hostIp}:{HOSTPORT}")
-    clientSocket, clientAddress = tcpSocket.accept()
+    clientSocket, (clientAddress,clientPort) = tcpSocket.accept()
 
-    print(f"\u001b[34m [*] \u001b[0m Got connection from {clientAddress[0]}:{clientAddress[1]}")
+    print(f"\u001b[34m [*] \u001b[0m Got connection from {clientAddress}:{clientPort}")
 
     while True:
         data = clientSocket.recv(1024).decode()
