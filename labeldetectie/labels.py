@@ -21,7 +21,7 @@ def init():
         cap.set(cv2.CAP_PROP_AUTO_WB, 0) 
         cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.0)
 
-        # cv2.namedWindow('frameContour', cv2.WINDOW_AUTOSIZE)
+        cv2.namedWindow('frameContour', cv2.WINDOW_AUTOSIZE)
         return True
     except Exception:
         print("could not open Labelcam:")
@@ -30,26 +30,27 @@ def init():
 
 
 def getLabel():
-    _,frame = cap.read()
+    for _ in range(3):
+        _,frame = cap.read()
     frameGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     frameBlur = cv2.GaussianBlur(frameGray,(5,5),0)
     _,frameBW = cv2.threshold(frameBlur,80, 255, cv2.THRESH_BINARY)
-    
+    out = "R2 B0"
     contours,_ = cv2.findContours(frameBW,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)   #External and NONE
     for cnt in contours:
         area = cv2.contourArea(cnt)
-        #print(area)
         rect = cv2.minAreaRect(cnt)
         label = cv2.boxPoints(rect)
         label = np.int0(label)
         
-        if 60000 < area and area < 80000:
+        if 50000 < area and area < 80000:
             cv2.drawContours(frame, [label], -1, (0,0,255),lineType=cv2.LINE_AA)
             out = "R2 B1"
             break
         else:
             out = "R2 B0"
-    # cv2.imshow('frameContour', frame)
+    cv2.imshow('frameContour', frame)
+    cv2.waitKey(1)
     return out
         
 

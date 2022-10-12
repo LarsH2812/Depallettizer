@@ -4,27 +4,24 @@
 
 import socket as tcp
 from time import sleep
-from math import sin, cos, radians
+from math import dist, sin, cos, radians
 from time import sleep
+from tkinter import HORIZONTAL
 import pyrealsense2 as rs
 import numpy as np
 import cv2 as cv
 from cv2 import aruco
 import imutils
 import traceback
+import logging
 
 cal_x = {
-    0:  -768.14,
-    1:  -1.5348,
-    2:  -0.0008,
-    3:  +1e-6,
-
+    0:  -466.98,
+    1:  -1.9902,
     }
 cal_y = {
-    0:  +1047.9,
-    1:  -1.7171,
-    2:  -4e-5,
-    3:  +2e-8,
+    0:  +910.87,
+    1:  -1.8597,
     }
 
 pipeline = None
@@ -38,7 +35,9 @@ def init():
     global maxDist
     try:
         cnts = None
-        framesize = {'width': 1280, 'height': 720}
+        framesize = {
+            'width' : 1280,
+            'height': 720}
 
         pipeline = rs.pipeline()
         config = rs.config()
@@ -71,13 +70,13 @@ def init():
         depthScale = depthSensor.get_depth_scale()
         print(f"Depth Scale is: {depthScale}")
 
-        maxDistMeters = 1.83  # [m]
+        maxDistMeters = 1.85  # [m]
         maxDist = maxDistMeters / depthScale
 
         align_to = rs.stream.color
         align = rs.align(align_to)
 
-        # cv.namedWindow('RealSense', cv.WINDOW_AUTOSIZE)
+        cv.namedWindow('RealSense', cv.WINDOW_AUTOSIZE)
         cv.waitKey(1000)
         return True
     except Exception:
@@ -88,7 +87,7 @@ def init():
 
 def getCoords():
     frames = pipeline.wait_for_frames()
-    output = ""
+    output = "R0"
 
     aligned_frames = align.process(frames)
 
@@ -104,12 +103,24 @@ def getCoords():
     gray_color = 0
     depthImage3D = np.dstack((depthImage, depthImage, depthImage))
     bgRemoved = np.where((depthImage3D > maxDist) | (depthImage3D <= 0), gray_color, colorImage)
-    # cv.imshow('test', bgRemoved)
-    gray = cv.cvtColor(bgRemoved, cv.COLOR_BGR2GRAY)
+    imrows, imcols = bgRemoved.shape[:2]
+    bgCropped = bgRemoved[0:imrows, 150:imcols]
+    colorImage = colorImage[0:imrows, 150:imcols]
+    depthImage3D = depthImage3D[0:imrows, 150:imcols]
+    depth_colormap = cv.applyColorMap(cv.convertScaleAbs(depthImage, alpha=0.03), cv.COLORMAP_JET)[0:imrows, 150:imcols]
+
+    gray = cv.cvtColor(bgCropped, cv.COLOR_BGR2GRAY)
     gray = cv.GaussianBlur(gray, (5, 5), 0)
-    _, bw = cv.threshold(gray, 96, 255, cv.THRESH_BINARY)
-    contours = cv.findContours(bw, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    _, bw = cv.threshold(gray,95, 255, cv.THRESH_BINARY)
+    bw = cv.GaussianBlur(bw, (23, 23), 0)
+    _, bw = cv.threshold(bw,254, 255, cv.THRESH_BINARY)
+    cv.imwrite("bw.png",bw)
+    HORIZONTAL1 = np.hstack((colorImage, np.dstack((gray,gray,gray)), np.dstack((bw,bw,bw))))
+    contours = cv.findContours(bw, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE)
+    contoured = colorImage.copy()
+    cv.drawContours(contoured, contours[0], -1, (255, 0, 0), 2, cv.LINE_AA)
     contours = imutils.grab_contours(contours)
+
     for cont in contours:
         M = cv.moments(cont)
         area = M["m00"]
@@ -155,10 +166,19 @@ def getCoords():
             cv.arrowedLine(colorImage, (cX, cY), (int(cX + lenArrow*cos(radians(angle-90))),
                         int(cY + lenArrow*sin(radians(angle-90)))), (255, 255, 255), 2)
             robX, robY = convert(cY, cX)
-            output = f"R1 X{robX} Y{robY} A{format(angle,'.2f')} O{1 if orientatie else 0}"
-    # cv.imshow('RealSense', colorImage)
+            radius = dist((0,0),(robX,robY))
+            
+            # if radius >= 1550:
+            #     print(f"X: {robX}, Y: {robY}, radius:{radius}")
+            #     output = f"R0"
+            #     continue
+            output = f"R1 X{format(robX,'.3f')} Y{format(robY,'.3f')} A{format(angle,'.2f')} O{1 if orientatie else 0}"
+            #output = f"R1 X{cY} Y{cX} A{format(angle,'.2f')} O{1 if orientatie else 0}"
+    HORIZONTAL2 = np.hstack((bgCropped,contoured,colorImage))
+    total = np.vstack((HORIZONTAL1,HORIZONTAL2))
+    cv.imshow('RealSense', cv.resize(total, None, fx= 0.5, fy= 0.5, interpolation= cv.INTER_LINEAR))
     cv.waitKey(1)
-
+    
     return output
 
 
@@ -181,7 +201,8 @@ if __name__ == "__main__":
 
 
     while True:
-        print(getCoords())
+        out = getCoords()
+        print(out)
         if cv.waitKey(1) == 27:
             break
     exit()

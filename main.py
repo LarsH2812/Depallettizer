@@ -11,6 +11,15 @@ import traceback
 from IntelRealsence import RealSense
 from labeldetectie import labels
 
+
+PCHOSTNAME = tcp.gethostname()
+HOSTIP = tcp.gethostbyname(PCHOSTNAME)
+HOSTPORT = 42523
+SERVERADRESS = (HOSTIP, HOSTPORT)
+
+robotIp = "198.162.0.5"
+
+
 def init():
     ret1 = RealSense.init()
     ret2 = labels.init()
@@ -18,14 +27,6 @@ def init():
     if not (ret1 and ret2):
         print('[*] could not open one of the cams')
         exit(0)
-
-PCHOSTNAME = tcp.gethostname()
-HOSTIP = tcp.gethostbyname(PCHOSTNAME)
-HOSTPORT = 42520
-SERVERADRESS = (HOSTIP, HOSTPORT)
-
-robotIp = "198.162.0.5"
-
 
 
 if __name__ != "__main__":
@@ -43,10 +44,12 @@ if __name__ != "__main__":
     tcpSocket.listen(5)
 
     while True:
-        print(f"\u001b[34m [*] \u001b[0m Started listening on :{HOSTIP}:{HOSTPORT}")
-        clientSocket, (clientAddress,clientPort) = tcpSocket.accept()
+        print(
+            f"\u001b[34m [*] \u001b[0m Started listening on :{HOSTIP}:{HOSTPORT}")
+        clientSocket, (clientAddress, clientPort) = tcpSocket.accept()
 
-        print(f"\u001b[34m [*] \u001b[0m Got connection from {clientAddress}:{clientPort}")
+        print(
+            f"\u001b[34m [*] \u001b[0m Got connection from {clientAddress}:{clientPort}")
 
         while True:
             request = clientSocket.recv(1024).decode()
@@ -59,8 +62,8 @@ if __name__ != "__main__":
                 print(label)
                 clientSocket.send(label.encode())
             elif request == 'close':
-                clientSocket.close()
-            elif request == 'quit': 
+                break
+            elif request == 'quit':
                 break
         if request == 'quit':
             break
