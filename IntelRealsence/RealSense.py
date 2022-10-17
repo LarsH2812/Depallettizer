@@ -86,6 +86,7 @@ def init():
 
 
 def getCoords():
+    outputArray = []
     frames = pipeline.wait_for_frames()
     output = "R0"
 
@@ -111,7 +112,7 @@ def getCoords():
 
     gray = cv.cvtColor(bgCropped, cv.COLOR_BGR2GRAY)
     gray = cv.GaussianBlur(gray, (5, 5), 0)
-    _, bw = cv.threshold(gray,95, 255, cv.THRESH_BINARY)
+    _, bw = cv.threshold(gray,92, 255, cv.THRESH_BINARY)
     bw = cv.GaussianBlur(bw, (23, 23), 0)
     _, bw = cv.threshold(bw,254, 255, cv.THRESH_BINARY)
     cv.imwrite("bw.png",bw)
@@ -145,12 +146,15 @@ def getCoords():
         else:
             angle = angle + 90
 
-        if 40000 <= area and area <= 90000:
+        if 0 <= (width) and (width) <= 130:
             orientatie = False
-        elif 90000 <= area:
+        elif 135 <= (width):
             orientatie = True
 
-        if area >= 40000:
+        if 35000 <= area and area <= 80000:
+            robX, robY = convert(cY, cX)
+            radius = dist((0,0),(robX,robY))
+
             cv.drawContours(colorImage, [box], -1, (255, 255, 255), 2, cv.LINE_AA)
             cv.circle(colorImage, (cX, cY), 7, (255, 255, 255), -1)
             cv.putText(colorImage, f"CENTER:", (cX-20, cY+20),
@@ -161,25 +165,31 @@ def getCoords():
                     cY+60), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
             cv.putText(colorImage, f"{orientatie}", (cX-20, cY+80),
                     cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            cv.putText(colorImage, f"width: {width}", (cX-20, cY+100),
+                    cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            cv.putText(colorImage, f"inrange: {True if radius < 1550 else False}", (cX-20, cY-20),
+                    cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
             lenArrow = 100
             cv.arrowedLine(colorImage, (cX, cY), (int(cX + lenArrow*cos(radians(angle-90))),
                         int(cY + lenArrow*sin(radians(angle-90)))), (255, 255, 255), 2)
-            robX, robY = convert(cY, cX)
-            radius = dist((0,0),(robX,robY))
             
-            # if radius >= 1550:
-            #     print(f"X: {robX}, Y: {robY}, radius:{radius}")
-            #     output = f"R0"
-            #     continue
-            output = f"R1 X{format(robX,'.3f')} Y{format(robY,'.3f')} A{format(angle,'.2f')} O{1 if orientatie else 0}"
+            output = f"R1 X{format(robX,'.3f')} Y{format(robY,'.3f')} A{format(angle-90,'.2f')} O{1 if orientatie else 0}"
+            if radius < 1550:
+                print (radius)
+                outputArray.append([cX,output])
             #output = f"R1 X{cY} Y{cX} A{format(angle,'.2f')} O{1 if orientatie else 0}"
+
     HORIZONTAL2 = np.hstack((bgCropped,contoured,colorImage))
     total = np.vstack((HORIZONTAL1,HORIZONTAL2))
     cv.imshow('RealSense', cv.resize(total, None, fx= 0.5, fy= 0.5, interpolation= cv.INTER_LINEAR))
     cv.waitKey(1)
-    
-    return output
+    if len(outputArray) == 0:
+        
+        return "R0"
+    else:
+        outputArray.sort()
+        return outputArray[0][1]
 
 
 def exit():
@@ -203,7 +213,8 @@ if __name__ == "__main__":
     while True:
         out = getCoords()
         print(out)
-        if cv.waitKey(1) == 27:
+        k = cv.waitKey(0)
+        if k == 27:
             break
     exit()
 

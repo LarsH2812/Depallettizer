@@ -42,10 +42,13 @@ def getLabel():
         rect = cv2.minAreaRect(cnt)
         label = cv2.boxPoints(rect)
         label = np.int0(label)
+        length, width = max(rect[1]), min(rect[1])
+        area = length * width
         
-        if 50000 < area and area < 80000:
+        if 45000 < area and area < 70000:
             cv2.drawContours(frame, [label], -1, (0,0,255),lineType=cv2.LINE_AA)
             out = "R2 B1"
+            print(area)
             break
         else:
             out = "R2 B0"
