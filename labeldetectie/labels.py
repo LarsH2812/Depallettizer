@@ -53,6 +53,8 @@ def getLabel():
         else:
             out = "R2 B0"
     cv2.imshow('frameContour', frame)
+    if cv2.waitKey(1)==32:
+            cv2.imwrite('label.tiff',frame)
     cv2.waitKey(1)
     return out
         
@@ -65,6 +67,7 @@ if __name__ == "__main__":
 
     while True:
         print(getLabel())
+        
         if cv2.waitKey(1) == 27:
             break
 
