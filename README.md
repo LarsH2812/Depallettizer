@@ -8,6 +8,9 @@
 
  This is the main code used for the project.
  The most important files are:
+
  [main](main.py)
- [Labels]](labeldetectie/labels.py)
+
+ [Labels](labeldetectie/labels.py)
+ 
  [RealSense](IntelRealsence/RealSense.py)
